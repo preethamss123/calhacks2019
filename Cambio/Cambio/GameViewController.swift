@@ -15,10 +15,17 @@ class GameViewController: UIViewController {
     @IBOutlet weak var displayCards: UILabel!
     @IBOutlet weak var numPlayers: UISlider!
     @IBOutlet weak var displayPlayers: UILabel!
+    static var players = Array<Array<Int>>()
+    static var turn = 0
+    static var trump = "H"
+    static var roundTrump = "D"
+    static var cardSuits = ["H", "D", "S", "C"]
+    static var roundBets = [Int]()
     
     @IBAction func onClick(_ sender: Any) {
         performSegue(withIdentifier: "Changer", sender: self)
     }
+    
     @IBAction func changePlayers(_ sender: Any) {
         displayPlayers.text = String(Int(numPlayers.value))
         cardInfo.numPlayers = Int(numPlayers.value)
@@ -39,8 +46,8 @@ class GameViewController: UIViewController {
         displayPlayers.text = String(Int(numPlayers.value))
     }
     
-    var card = Array<Int>()
-    func createCards(){
+    static var card = Array<Int>()
+    static func createCards(){
         var i = 1
         while i <= 52 {
             card.append(i)
@@ -48,25 +55,60 @@ class GameViewController: UIViewController {
         }
     }
     
-    func getCard(num: Int)-> Array<Int>{
-        var i = num
-        if card.count == 0 {
-            createCards()
+    static func nextTurn() -> Int{
+        turn += 1
+        if turn > cardInfo.numPlayers{
+            determineWinner()
+            cardInfo.cardsPlayed = Array<Int>()
+            turn = 1
         }
-        var playerCards = Array<Int>()
-        while i > 0 {
-            let randomElementIndex = Int.random(in: 0..<card.count)
-            playerCards.append(card[randomElementIndex])
-            card.remove(at: randomElementIndex)
-            i = i - 1
+        return turn % cardInfo.numPlayers
+    }
+    
+    static func createPlayers(num: Int){
+        for _ in 0..<cardInfo.numPlayers {
+            var i = num
+            if card.count == 0 {
+                createCards()
         }
-        return playerCards
+            var playerCards = Array<Int>()
+            for _ in 0..<num {
+                let randomElementIndex = Int.random(in: 0..<card.count)
+                playerCards.append(card[randomElementIndex])
+                card.remove(at: randomElementIndex)
+                i = i - 1
+            }
+            players.append(playerCards)
+        }
+    }
+    
+    static func determineWinner(){
+        var pointValues = [Int]()
+        for i in 0...cardInfo.cardsPlayed.count - 1{
+            let cardNumber = cardInfo.cardsPlayed[i] % 13 + 1
+            let cardSuit = cardSuits[cardInfo.cardsPlayed[i] % 4]
+            if cardSuit == trump {
+                pointValues.append(100 + cardNumber)
+            }
+            else if cardSuit == roundTrump {
+                pointValues.append(20 + cardNumber)
+            }
+            else {
+                pointValues.append(cardNumber)
+            }
+        }
+        var maxPlayer = pointValues.max()
+        for i in 0..<pointValues.count{
+            if pointValues[i] == maxPlayer{
+                maxPlayer = i
+            }
+        }
+        print(String(maxPlayer!))
     }
 }
 
 struct cardInfo {
-    static var cards = GameViewController()
     static var numCards = 4
-    static var numPlayers = 2
+    static var numPlayers = 4
     static var cardsPlayed = Array<Int>()
 }
