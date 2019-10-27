@@ -8,16 +8,49 @@
 
 import UIKit
 
-class Player: UIViewController {
+class Player: UIViewController, UITextFieldDelegate {
     var buttonNum = 0
     var buttonValues = Array<UIButton>()
     var firstTurn = true
     var playedButtons = Array<UIButton>()
     var cardSuits = ["H", "D", "S", "C"]
+    var playerCards = Array<Int>()
+    var turn = 0
+    var firstfirst = true
+    var beforeFirst = true
+    var textInput: String = ""
+    
     override func viewDidLoad(){
         super.viewDidLoad()
-        createView()
+        GameViewController.createPlayers(num: cardInfo.numCards)
+        if beforeFirst {
+            createTextField()
+        }
+        createView(num: GameViewController.nextTurn())
     }
+    
+    func createTextField() {
+            let textField =  UITextField(frame: CGRect(x: 20, y: 100, width: 300, height: 40))
+            textField.placeholder = "Enter text here"
+            textField.font = UIFont.systemFont(ofSize: 15)
+            textField.borderStyle = UITextField.BorderStyle.roundedRect
+            textField.autocorrectionType = UITextAutocorrectionType.no
+            textField.returnKeyType = UIReturnKeyType.done
+            textField.keyboardType = .numberPad
+            textField.clearButtonMode = UITextField.ViewMode.whileEditing
+            textField.contentVerticalAlignment = UIControl.ContentVerticalAlignment.center
+            textField.delegate = self
+            self.view.addSubview(textField)
+    }
+    
+    @objc func textFieldShouldReturn(_ textField: UITextField) -> Bool{
+        textField.resignFirstResponder()
+        print("pressed")
+        textField.removeFromSuperview()
+        return true
+    }
+    
+    
     
     func getCardNumber(thisButton: UIButton) -> Int{
         var count = 0
@@ -43,25 +76,32 @@ class Player: UIViewController {
     
     @objc func buttonAction(me: UIButton!)
     {
-        let cardNumber = getCardNumber(thisButton: me)
-        me.setBackgroundImage(UIImage(named: (String(cardNumber % 13 + 1) + cardSuits[cardNumber % 4])), for: .normal)
+        printCards()
         if firstTurn {
             firstTurn = false
         }
         else {
+            firstTurn = true
             removeCard(thisButton: me)
+            removeAllCards()
+            createView(num: GameViewController.nextTurn())
         }
-        printCards()
+    }
+    
+    func removeAllCards(){
+        var count = buttonValues.count - 1
+        while count >= 0 {
+            buttonValues.remove(at: count).removeFromSuperview()
+            count = count - 1
+        }
     }
     
     func removeCard(thisButton: UIButton) {
         let cardNumber = getCardNumber(thisButton: thisButton)
         cardInfo.cardsPlayed.append(playerCards[cardNumber])
         buttonValues.remove(at: cardNumber).removeFromSuperview()
-        playerCards.remove(at: cardNumber)
+        GameViewController.players[turn].remove(at: cardNumber)
         }
-    
-    var playerCards = cardInfo.cards.getCard(num: 4)
     
     func printCards() {
         var count = 0
@@ -99,9 +139,17 @@ class Player: UIViewController {
     }
 
     
-    func createView() {
+    func createView(num: Int) {
+        if !firstfirst {
+            printCards()
+        }
+        else {
+            firstfirst = false
+        }
+        turn = num
         var i = 0.0
-        while i < 4.0 {
+        playerCards = GameViewController.players[num]
+        while i < Double(playerCards.count) {
             let button = UIButton(type: UIButton.ButtonType.system) as UIButton
             let width = Int(i.truncatingRemainder(dividingBy: 2))
             let height = Int(i / 2)
@@ -109,7 +157,6 @@ class Player: UIViewController {
             let yPostion:CGFloat = 400 + CGFloat(height) * 200
             let buttonWidth:CGFloat = 75
             let buttonHeight:CGFloat = 150
-            
             button.frame = CGRect(x:xPostion, y:yPostion, width:buttonWidth, height:buttonHeight)
             button.setTitle("Tap me", for: UIControl.State.normal)
             button.addTarget(self, action: #selector(buttonAction(me: )), for: .touchUpInside)
