@@ -16,11 +16,16 @@ class GameViewController: UIViewController {
     @IBOutlet weak var numPlayers: UISlider!
     @IBOutlet weak var displayPlayers: UILabel!
     static var players = Array<Array<Int>>()
-    static var turn = 0
+    static var turn = -1
+    static var roundTurns = -1
     static var trump = "H"
     static var roundTrump = "D"
     static var cardSuits = ["H", "D", "S", "C"]
     static var roundBets = [Int]()
+    static var roundPoints = [Int()]
+    static var totalPoints = [Int()]
+    static var card = Array<Int>()
+    static var numZero = 0
     
     @IBAction func onClick(_ sender: Any) {
         performSegue(withIdentifier: "Changer", sender: self)
@@ -46,7 +51,6 @@ class GameViewController: UIViewController {
         displayPlayers.text = String(Int(numPlayers.value))
     }
     
-    static var card = Array<Int>()
     static func createCards(){
         var i = 1
         while i <= 52 {
@@ -57,12 +61,23 @@ class GameViewController: UIViewController {
     
     static func nextTurn() -> Int{
         turn += 1
-        if turn > cardInfo.numPlayers{
+        roundTurns += 1
+        if roundTurns == cardInfo.numPlayers{
+            roundTurns = 0
             determineWinner()
             cardInfo.cardsPlayed = Array<Int>()
-            turn = 1
+            if players[turn % cardInfo.numPlayers].count == 0 {
+                resetRound()
+            }
         }
         return turn % cardInfo.numPlayers
+    }
+    
+    static func resetRound() {
+        roundBets = Array<Int>()
+        card = Array<Int>()
+        players = Array<Array<Int>>()
+        createPlayers(num: cardInfo.numCards)
     }
     
     static func createPlayers(num: Int){
