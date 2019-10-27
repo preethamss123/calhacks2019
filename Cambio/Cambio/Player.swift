@@ -8,7 +8,7 @@
 
 import UIKit
 
-class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource {
+class Player: UIViewController, UITextFieldDelegate {
     var buttonNum = 0
     var buttonValues = Array<UIButton>()
     var firstTurn = true
@@ -20,8 +20,6 @@ class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPic
     var beforeFirst = true
     var textInput: String = ""
     var j = false
-    var result = ""
-    let picker = UIPickerView()
     
     override func viewDidLoad(){
         super.viewDidLoad()
@@ -51,34 +49,17 @@ class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPic
             for i in 0..<cardInfo.numPlayers {
                 if GameViewController.roundBets[i] == maxBet {
                     GameViewController.turn = i
-                    createPicker()
+                    createView(num: i)
                 }
             }
         }
         else {
+            cardInfo.gameScore.append(0)
             removeAllCards()
             createView(num: GameViewController.roundBets.count)
         }
         return true
-    }
-    
-    func createPicker() {
-        picker.frame = CGRect(x: 110, y: 100, width: 200, height: 80)
-        picker.delegate = self
-        picker.dataSource = self
-        self.view.addSubview(picker)
-        let pickerButton = UIButton(type: UIButton.ButtonType.system) as UIButton
-        pickerButton.frame = CGRect(x: 110, y: 180, width: 200, height: 80)
-        pickerButton.setTitle("Choose", for: UIControl.State.normal)
-        pickerButton.addTarget(self, action: #selector(pickerButtonAction(me: )), for: .touchUpInside)
-        self.view.addSubview(pickerButton)
-    }
-    
-    @objc func pickerButtonAction(me: UIButton!) {
-        picker.removeFromSuperview()
-        me.removeFromSuperview()
-        print(result)
-        createView(num: GameViewController.turn)
+        
     }
     
     func getCardNumber(thisButton: UIButton) -> Int{
@@ -196,28 +177,12 @@ class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPic
             let buttonWidth:CGFloat = 75
             let buttonHeight:CGFloat = 150
             button.frame = CGRect(x:xPostion, y:yPostion, width:buttonWidth, height:buttonHeight)
-            button.setTitle("Click me", for: UIControl.State.normal)
+            button.setTitle("Tap me", for: UIControl.State.normal)
             button.addTarget(self, action: #selector(buttonAction(me: )), for: .touchUpInside)
             self.view.addSubview(button)
             buttonValues.append(button)
             i = i + 1.0
         }
-    }
-    
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 1
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return 4
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-                return cardSuits[row]
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        result = cardSuits[row]
     }
 
     /*
@@ -231,4 +196,3 @@ class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPic
     */
 
 }
-

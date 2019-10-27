@@ -8,7 +8,7 @@
 
 import UIKit
 
-class Player: UIViewController {
+class Player: UIViewController, UITextFieldDelegate {
     var buttonNum = 0
     var buttonValues = Array<UIButton>()
     var firstTurn = true
@@ -17,11 +17,49 @@ class Player: UIViewController {
     var playerCards = Array<Int>()
     var turn = 0
     var firstfirst = true
+    var beforeFirst = true
+    var textInput: String = ""
+    var j = false
     
     override func viewDidLoad(){
         super.viewDidLoad()
         GameViewController.createPlayers(num: cardInfo.numCards)
         createView(num: GameViewController.nextTurn())
+    }
+    
+    func createTextField() {
+        let textField =  UITextField(frame: CGRect(x: 125, y: 100, width: 200, height: 80))
+        textField.font = UIFont.systemFont(ofSize: 30)
+        textField.borderStyle = UITextField.BorderStyle.roundedRect
+        textField.keyboardType = UIKeyboardType.numberPad
+        textField.attributedPlaceholder = NSAttributedString(string: "Enter Bet")
+        textField.returnKeyType = UIReturnKeyType.done
+        self.view.addSubview(textField)
+        textField.delegate = self
+    }
+    
+    @objc func textFieldShouldReturn(_ textField: UITextField) -> Bool{
+        textField.resignFirstResponder()
+        GameViewController.roundBets.append(Int(textField.text!) ?? 0)
+        textField.removeFromSuperview()
+        if GameViewController.roundBets.count == cardInfo.numPlayers {
+            beforeFirst = false
+            removeAllCards()
+            let maxBet = GameViewController.roundBets.max()
+            for i in 0..<cardInfo.numPlayers {
+                if GameViewController.roundBets[i] == maxBet {
+                    GameViewController.turn = i
+                    createView(num: i)
+                }
+            }
+        }
+        else {
+            cardInfo.gameScore.append(0)
+            removeAllCards()
+            createView(num: GameViewController.roundBets.count)
+        }
+        return true
+        
     }
     
     func getCardNumber(thisButton: UIButton) -> Int{
@@ -49,10 +87,10 @@ class Player: UIViewController {
     @objc func buttonAction(me: UIButton!)
     {
         printCards()
-        if firstTurn {
+        if firstTurn && !beforeFirst{
             firstTurn = false
         }
-        else {
+        else if !beforeFirst{
             firstTurn = true
             removeCard(thisButton: me)
             removeAllCards()
@@ -112,11 +150,20 @@ class Player: UIViewController {
 
     
     func createView(num: Int) {
-        if !firstfirst {
+        if GameViewController.roundBets.count == 0 {
+            beforeFirst = true
+            firstfirst = true
+            print(num)
+            print(GameViewController.players[num])
+        }
+        if firstfirst {
             printCards()
         }
-        else {
+        else if !beforeFirst{
             firstfirst = false
+        }
+        if beforeFirst {
+            createTextField()
         }
         turn = num
         var i = 0.0
@@ -149,4 +196,3 @@ class Player: UIViewController {
     */
 
 }
-
