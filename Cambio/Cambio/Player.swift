@@ -20,7 +20,6 @@ class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPic
     var beforeFirst = true
     var textInput: String = ""
     var j = false
-    var result = ""
     let picker = UIPickerView()
     
     override func viewDidLoad(){
@@ -45,6 +44,7 @@ class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPic
         GameViewController.roundBets.append(Int(textField.text!) ?? 0)
         textField.removeFromSuperview()
         if GameViewController.roundBets.count == cardInfo.numPlayers {
+            cardInfo.gameScore.append(0)
             beforeFirst = false
             removeAllCards()
             let maxBet = GameViewController.roundBets.max()
@@ -52,10 +52,12 @@ class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPic
                 if GameViewController.roundBets[i] == maxBet {
                     GameViewController.turn = i
                     createPicker()
+                    return true
                 }
             }
         }
         else {
+            cardInfo.gameScore.append(0)
             removeAllCards()
             createView(num: GameViewController.roundBets.count)
         }
@@ -77,7 +79,6 @@ class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPic
     @objc func pickerButtonAction(me: UIButton!) {
         picker.removeFromSuperview()
         me.removeFromSuperview()
-        print(result)
         createView(num: GameViewController.turn)
     }
     
@@ -173,7 +174,6 @@ class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPic
             beforeFirst = true
             firstfirst = true
             print(num)
-            print(GameViewController.players[num])
         }
         if firstfirst {
             printCards()
@@ -202,6 +202,18 @@ class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPic
             buttonValues.append(button)
             i = i + 1.0
         }
+        if cardInfo.gameEnd {
+            let button = UIButton(type: UIButton.ButtonType.system) as UIButton
+            let xPostion:CGFloat = 75
+            let yPostion:CGFloat = 300
+            let buttonWidth:CGFloat = 400
+            let buttonHeight:CGFloat = 150
+            button.frame = CGRect(x:xPostion, y:yPostion, width:buttonWidth, height:buttonHeight)
+            button.setTitle("Player " + String(num + 1) + " Won!!!", for: UIControl.State.normal)
+            self.view.addSubview(button)
+            removeAllCards()
+            picker.removeFromSuperview()
+        }
     }
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
@@ -217,7 +229,7 @@ class Player: UIViewController, UITextFieldDelegate, UIPickerViewDelegate, UIPic
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        result = cardSuits[row]
+        cardInfo.result = cardSuits[row]
     }
 
     /*

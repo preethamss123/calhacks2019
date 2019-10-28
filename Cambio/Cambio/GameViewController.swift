@@ -22,8 +22,6 @@ class GameViewController: UIViewController {
     static var roundTrump = "D"
     static var cardSuits = ["H", "D", "S", "C"]
     static var roundBets = [Int]()
-    static var roundPoints = [Int()]
-    static var totalPoints = [Int()]
     static var card = Array<Int>()
     static var numZero = 0
     
@@ -49,6 +47,9 @@ class GameViewController: UIViewController {
         numPlayers.maximumValue = 4
         displayCards.text = String(Int(numCards.value))
         displayPlayers.text = String(Int(numPlayers.value))
+        for _ in 0..<cardInfo.numPlayers {
+            cardInfo.overallScore.append(0)
+        }
     }
     
     static func createCards(){
@@ -60,13 +61,16 @@ class GameViewController: UIViewController {
     }
     
     static func nextTurn() -> Int{
-        turn += 1
+        turn = turn + 1
         roundTurns += 1
         if roundTurns == cardInfo.numPlayers{
             roundTurns = 0
-            determineWinner()
+            determineRoundWinner()
             cardInfo.cardsPlayed = Array<Int>()
+            cardInfo.result = ""
+            print(turn % cardInfo.numPlayers)
             if players[turn % cardInfo.numPlayers].count == 0 {
+                findOverallScores()
                 resetRound()
             }
         }
@@ -78,6 +82,7 @@ class GameViewController: UIViewController {
         card = Array<Int>()
         players = Array<Array<Int>>()
         createPlayers(num: cardInfo.numCards)
+        cardInfo.gameScore = Array<Int>()
     }
     
     static func createPlayers(num: Int){
@@ -97,7 +102,7 @@ class GameViewController: UIViewController {
         }
     }
     
-    static func determineWinner(){
+    static func determineRoundWinner(){
         var pointValues = [Int]()
         for i in 0...cardInfo.cardsPlayed.count - 1{
             let cardNumber = cardInfo.cardsPlayed[i] % 13 + 1
@@ -118,7 +123,33 @@ class GameViewController: UIViewController {
                 maxPlayer = i
             }
         }
-        print(String(maxPlayer!))
+        cardInfo.gameScore[maxPlayer!] += 1
+        turn = maxPlayer!
+    }
+
+    static func findOverallScores() {
+        for i in 0..<roundBets.count{
+            if roundBets[i] == cardInfo.gameScore[i]{
+                cardInfo.overallScore[i] += (roundBets[i] + 10*(roundBets[i]+1))
+            }
+        }
+        declareWinner()
+        print(cardInfo.overallScore)
+    }
+    
+    static func declareWinner() {
+        for i in 0..<cardInfo.numPlayers {
+            if cardInfo.overallScore[i] >= 50 {
+                print("Player " + String(i + 1) + " Won")
+                win(i: i)
+            }
+        }
+    }
+    
+    static func win(i: Int){
+        cardInfo.gameEnd = true
+        turn = i
+        players = Array<Array<Int>>()
     }
 }
 
@@ -126,4 +157,8 @@ struct cardInfo {
     static var numCards = 4
     static var numPlayers = 4
     static var cardsPlayed = Array<Int>()
+    static var result = ""
+    static var gameScore = Array<Int>()
+    static var overallScore = Array<Int>()
+    static var gameEnd = false
 }
